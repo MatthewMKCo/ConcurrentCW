@@ -10,6 +10,16 @@ currentProcess = currentProcess + 1;
 current = &pcb[ currentProcess ];
 */
 void schedule(ctx_t* ctx) {
+  while(current -> active == 0){
+    currentProcess = currentProcess + 1;
+    current = &pcb[ currentProcess ];
+  }
+  memcpy( &lastLoaded->ctx, ctx, sizeof( ctx_t ) ); // Save
+  memcpy( ctx, &pcb[ currentProcess ].ctx, sizeof( ctx_t ) ); // Load
+  lastLoaded = &pcb[currentProcess];
+  currentProcess = currentProcess + 1;
+  current = &pcb[ currentProcess % (maxProcesses) ];
+  /*
   if(current -> active == 1 && currentProcess != maxProcesses - 1){
     memcpy( &lastLoaded->ctx, ctx, sizeof( ctx_t ) ); // Save
     memcpy( ctx, &pcb[ currentProcess ].ctx, sizeof( ctx_t ) ); // Load
@@ -31,7 +41,7 @@ void schedule(ctx_t* ctx) {
     lastLoaded = &pcb[ currentProcess ];
     currentProcess = 1;
     current = &pcb[ currentProcess ];
-  }
+  }*/
   return;
 }
 
@@ -81,7 +91,8 @@ void hilevel_handler_rst(ctx_t* ctx) {
   pcb[ 3 ].ctx.pc   = ( uint32_t )( &main_P5 );
   pcb[ 3 ].ctx.sp   = ( uint32_t )( &tos_P5  );
 
-  memcpy(ctx, &pcb[ 1 ].ctx, sizeof(ctx_t));
+  memcpy(ctx, &pcb[ 0 ].ctx, sizeof(ctx_t));
+  /*
   lastLoaded = &pcb[1];
   currentProcess = currentProcess + 1;
   current = &pcb[ 2 ];
