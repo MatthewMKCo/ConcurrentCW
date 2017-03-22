@@ -76,26 +76,20 @@ void main_console() {
 
       kill( pid, s );
     }
-    else if( 0 == strcmp(p, "philosopher")){
-      for(int i=0; i<3; i++){
-        int pid = fork(5);
-
-        if(0 == pid){
+    else if( 0 == strcmp(p, "phil")){
+      int pid = fork(5);
+      if(pid == 0){
+        for(int i=0; i<1;){
           char* change;
-          if(i == 0){
-          write( STDOUT_FILENO, "0", 2 );
+          itoa(change, pid);
+          write(STDIN_FILENO, change,2);
+          if(pid == 0){
+            pid = fork(5);
+            void* addr = load("P3");
+            exec( addr );
           }
-          else if(i == 1){
-            write(STDOUT_FILENO, "1", 2);
+          i++;
           }
-          else if(i == 2){
-            write(STDOUT_FILENO, "2", 2);
-          }
-          else write(STDOUT_FILENO, "fu", 2);
-
-          void* addr = load("P3");
-          exec( addr );
-        }
       }
 
     }

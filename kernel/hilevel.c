@@ -90,8 +90,6 @@ void hilevel_handler_rst(ctx_t* ctx) {
   pcb[ 0 ].ctx.sp   = ( uint32_t )( &tos_console  );
 
   memcpy(ctx, &pcb[ 0 ].ctx, sizeof(ctx_t));
-  lastLoaded = &pcb[0];
-  currentProcess = currentProcess + 1;
   current = &pcb[ currentProcess ];
 
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
