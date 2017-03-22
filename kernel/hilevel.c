@@ -1,7 +1,7 @@
 #include "hilevel.h"
 
 pcb_t pcb[ 100 ], *current = NULL, *lastLoaded = NULL;
-int currentProcess = 1, maxProcesses = 4;
+int currentProcess = 0, maxProcesses = 1;
 /*
 current = &pcb[ 0 ];
 memcpy( ctx, &pcb[ currentProcess ].ctx, sizeof( ctx_t ) );
@@ -11,48 +11,65 @@ current = &pcb[ currentProcess ];
 */
 void schedule(ctx_t* ctx) {
   while(current -> active == 0){
-    currentProcess = currentProcess + 1;
+    currentProcess = (currentProcess + 1) % maxProcesses;
     current = &pcb[ currentProcess ];
+  }
+  if(current == lastLoaded){
+    currentProcess = (currentProcess + 1) % maxProcesses ;
+    current = &pcb[ currentProcess];
+    return;
   }
   memcpy( &lastLoaded->ctx, ctx, sizeof( ctx_t ) ); // Save
   memcpy( ctx, &pcb[ currentProcess ].ctx, sizeof( ctx_t ) ); // Load
-  lastLoaded = &pcb[currentProcess];
-  currentProcess = currentProcess + 1;
-  current = &pcb[ currentProcess % (maxProcesses) ];
-  /*
-  if(current -> active == 1 && currentProcess != maxProcesses - 1){
-    memcpy( &lastLoaded->ctx, ctx, sizeof( ctx_t ) ); // Save
-    memcpy( ctx, &pcb[ currentProcess ].ctx, sizeof( ctx_t ) ); // Load
-    lastLoaded = &pcb[ currentProcess ];
-    currentProcess = currentProcess + 1;
-    current = &pcb[ currentProcess ];
-  }
-  else if(current -> active == 0 && currentProcess != maxProcesses - 1){
-    currentProcess = currentProcess + 1;
-    current = &pcb[ currentProcess ];
-  }
-  else if(current -> active == 0 && currentProcess == maxProcesses - 1){
-    currentProcess = 1;
-    current = &pcb[ currentProcess ];
-  }
-  else if(current -> active == 1 && currentProcess == maxProcesses - 1){
-    memcpy( &lastLoaded->ctx, ctx, sizeof( ctx_t ) ); // Save
-    memcpy( ctx, &pcb[ currentProcess ].ctx, sizeof( ctx_t ) ); // Load
-    lastLoaded = &pcb[ currentProcess ];
-    currentProcess = 1;
-    current = &pcb[ currentProcess ];
-  }*/
+  lastLoaded = &pcb[currentProcess ];
+  currentProcess = (currentProcess + 1) % maxProcesses ;
+  current = &pcb[ currentProcess ];
   return;
 }
 
+
+void prioritySchedule(ctx_t* ctx) {
+
+  for(int i = 0; i < maxProcesses; i++){
+      if(i == currentProcess){
+        pcb[ i ].priority = pcb[ i ].originalPriority;
+        continue;
+      }
+      if(pcb[ i ].active != 0){
+        pcb[ i ].priority = pcb[ i ].priority + 1;
+      }
+  }
+  memcpy( &pcb[ currentProcess ].ctx, ctx, sizeof( ctx_t ) ); // Save
+  for(int i = 0; i < maxProcesses; i++){
+    if(pcb[ i ].active == 0)continue;
+    else if(pcb[ i ].priority > pcb[ currentProcess ].priority){
+      currentProcess = i;
+    }
+  }
+  memcpy( ctx, &pcb[ currentProcess ].ctx, sizeof( ctx_t ) ); // Load
+
+  lastLoaded = &pcb[ currentProcess ];
+  return;
+}
+/*
 extern void     main_P3();
 extern uint32_t tos_P3;
 extern void     main_P4();
 extern uint32_t tos_P4;
 extern void     main_P5();
 extern uint32_t tos_P5;
+*/
 extern void     main_console();
 extern uint32_t tos_console;
+
+void createPCB(ctx_t* ctx){
+  memset(&pcb[maxProcesses], 0, sizeof( pcb_t ));
+  memcpy(&pcb[maxProcesses].ctx, ctx,sizeof( ctx_t ) );
+  pcb[maxProcesses].pid = maxProcesses + 1;
+  pcb[maxProcesses].active = 1;
+  pcb[maxProcesses].ctx.gpr[0] = 0;
+  maxProcesses = maxProcesses + 1;
+}
 
 void hilevel_handler_rst(ctx_t* ctx) {
   /* Initialise PCBs representing processes stemming from execution of
@@ -66,36 +83,16 @@ void hilevel_handler_rst(ctx_t* ctx) {
   memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
   pcb[ 0 ].pid      = 1;
   pcb[ 0 ].active   = 1;
+  pcb[ 0 ].priority = 5;
+  pcb[ 0 ].originalPriority = 5;
   pcb[ 0 ].ctx.cpsr = 0x50;
   pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_console );
   pcb[ 0 ].ctx.sp   = ( uint32_t )( &tos_console  );
 
-  memset( &pcb[1], 0, sizeof( pcb_t ));
-  pcb[ 1 ].pid      = 2;
-  pcb[ 1 ].active   = 1;
-  pcb[ 1 ].ctx.cpsr = 0x50;
-  pcb[ 1 ].ctx.pc   = ( uint32_t )( &main_P3 );
-  pcb[ 1 ].ctx.sp   = ( uint32_t )( &tos_P3  );
-
-  memset( &pcb[ 2 ], 0, sizeof( pcb_t ) );
-  pcb[ 2 ].pid      = 3;
-  pcb[ 2 ].active   = 1;
-  pcb[ 2 ].ctx.cpsr = 0x50;
-  pcb[ 2 ].ctx.pc   = ( uint32_t )( &main_P4 );
-  pcb[ 2 ].ctx.sp   = ( uint32_t )( &tos_P4  );
-
-  memset( &pcb[ 3 ], 0, sizeof( pcb_t ) );
-  pcb[ 3 ].pid      = 4;
-  pcb[ 3 ].active   = 1;
-  pcb[ 3 ].ctx.cpsr = 0x50;
-  pcb[ 3 ].ctx.pc   = ( uint32_t )( &main_P5 );
-  pcb[ 3 ].ctx.sp   = ( uint32_t )( &tos_P5  );
-
   memcpy(ctx, &pcb[ 0 ].ctx, sizeof(ctx_t));
-  /*
-  lastLoaded = &pcb[1];
+  lastLoaded = &pcb[0];
   currentProcess = currentProcess + 1;
-  current = &pcb[ 2 ];
+  current = &pcb[ currentProcess ];
 
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
@@ -125,8 +122,8 @@ void hilevel_handler_irq(ctx_t* ctx) {
   // Step 4: handle the interrupt, then clear (or reset) the source.
 
   if( id == GIC_SOURCE_TIMER0 ) {
-    schedule(ctx);
-    PL011_putc( UART0, ' ', true );    TIMER0->Timer1IntClr = 0x01;
+    prioritySchedule(ctx);
+    PL011_putc( UART0, '_', true );    TIMER0->Timer1IntClr = 0x01;
   }
 
   // Step 5: write the interrupt identifier to signal we're done.
@@ -160,22 +157,35 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
 
       ctx->gpr[ 0 ] = n;
       break;
-    }/*
+    }
     case 0x02 : {// read(fd, x, n)
 
     }
     case 0x03 : {// fork()
-
+      memset(&pcb[maxProcesses], 0, sizeof( pcb_t ));
+      memcpy(&pcb[maxProcesses].ctx, ctx,sizeof( ctx_t ) );
+      pcb[ maxProcesses ].pid = maxProcesses + 1;
+      pcb[ maxProcesses ].priority = ( int ) ctx->gpr[0];
+      pcb[ maxProcesses ].originalPriority = ( int ) ctx->gpr[0];
+      pcb[ maxProcesses ].active = 1;
+      pcb[ maxProcesses ].ctx.sp   = ( uint32_t ) pcb[maxProcesses-1].ctx.sp + 0x00001000;
+      pcb[ maxProcesses ].ctx.gpr[0] = 0;
+      ctx->gpr[0] = pcb[ maxProcesses ].pid;
+      maxProcesses = maxProcesses + 1;
+      break;
     }
     case 0x04 : {// exit(x)
-
+      lastLoaded->active = 0;
+      break;
     }
     case 0x05 : {// exec(x)
-
+      int x = (int) ctx -> gpr[0];
+      ctx->pc = x;
+      break;
     }
     case 0x06 : {// kill(pid, x)
 
-    }*/
+    }
     default   : { // 0x?? => unknown/unsupported
       break;
     }

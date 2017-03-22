@@ -1,7 +1,7 @@
 #include "console.h"
 
 /* The following functions are special-case versions of a) writing,
- * and b) reading a string from the UART (the latter case returning 
+ * and b) reading a string from the UART (the latter case returning
  * once a carriage return character has been read, or an overall
  * limit reached).
  */
@@ -15,22 +15,23 @@ void puts( char* x, int n ) {
 void gets( char* x, int n ) {
   for( int i = 0; i < n; i++ ) {
     x[ i ] = PL011_getc( UART1, true );
-    
+
     if( x[ i ] == '\x0A' ) {
       x[ i ] = '\x00'; break;
     }
   }
 }
 
-/* Since we lack a *real* loader (as a result of lacking a storage 
+/* Since we lack a *real* loader (as a result of lacking a storage
  * medium to store program images), the following approximates one:
  * given a program name, from the set of programs statically linked
  * into the kernel image, it returns a pointer to the entry point.
  */
 
-extern void main_P3(); 
-extern void main_P4(); 
-extern void main_P5(); 
+extern void main_P3();
+extern void main_P4();
+extern void main_P5();
+extern void main_Philosopher();
 
 void* load( char* x ) {
   if     ( 0 == strcmp( x, "P3" ) ) {
@@ -61,19 +62,43 @@ void main_console() {
     puts( "shell$ ", 7 ); gets( x, 1024 ); p = strtok( x, " " );
 
     if     ( 0 == strcmp( p, "fork" ) ) {
-      pid_t pid = fork();
+      int token = atoi(strtok( NULL, " "));
+      pid_t pid = fork(token);
 
       if( 0 == pid ) {
         void* addr = load( strtok( NULL, " " ) );
         exec( addr );
       }
-    } 
+    }
     else if( 0 == strcmp( p, "kill" ) ) {
       pid_t pid = atoi( strtok( NULL, " " ) );
       int   s   = atoi( strtok( NULL, " " ) );
 
       kill( pid, s );
-    } 
+    }
+    else if( 0 == strcmp(p, "philosopher")){
+      for(int i=0; i<3; i++){
+        int pid = fork(5);
+
+        if(0 == pid){
+          char* change;
+          if(i == 0){
+          write( STDOUT_FILENO, "0", 2 );
+          }
+          else if(i == 1){
+            write(STDOUT_FILENO, "1", 2);
+          }
+          else if(i == 2){
+            write(STDOUT_FILENO, "2", 2);
+          }
+          else write(STDOUT_FILENO, "fu", 2);
+
+          void* addr = load("P3");
+          exec( addr );
+        }
+      }
+
+    }
     else {
       puts( "unknown command\n", 16 );
     }
