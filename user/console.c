@@ -62,12 +62,14 @@ void main_console() {
     puts( "shell$ ", 7 ); gets( x, 1024 ); p = strtok( x, " " );
 
     if     ( 0 == strcmp( p, "fork" ) ) {
-      int token = atoi(strtok( NULL, " "));
-      pid_t pid = fork(token);
+      //int token = atoi(strtok( NULL, " "));
+      pid_t pid = fork(25);
 
       if( 0 == pid ) {
         void* addr = load( strtok( NULL, " " ) );
         exec( addr );
+        // goto *addr;
+        write(STDOUT_FILENO,"oh no",5);
       }
     }
     else if( 0 == strcmp( p, "kill" ) ) {
@@ -77,22 +79,20 @@ void main_console() {
       kill( pid, s );
     }
     else if( 0 == strcmp(p, "phil")){
-      int pid = fork(5);
-      if(pid == 0){
-        for(int i=0; i<1;){
-          char* change;
-          itoa(change, pid);
-          write(STDIN_FILENO, change,2);
-          if(pid == 0){
-            pid = fork(5);
-            void* addr = load("P3");
-            exec( addr );
+        for(int i=0; i<3; i++){
+          int pid = fork(10);
+          if(0 == pid){
+            if(i == 0)write(STDOUT_FILENO, "0", 2);
+            if(i == 1)write(STDOUT_FILENO, "1", 2);
+            if(i == 2)write(STDOUT_FILENO, "2", 2);
+            if(i == 3)write(STDOUT_FILENO, "3", 2);
+            if(i == 4)write(STDOUT_FILENO, "4", 2);
+            //void* addr = load("P3");
+            exec( &main_P3 );
+            write(STDOUT_FILENO,"oh no",5);
           }
-          i++;
           }
       }
-
-    }
     else {
       puts( "unknown command\n", 16 );
     }

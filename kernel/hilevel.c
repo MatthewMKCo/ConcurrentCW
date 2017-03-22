@@ -29,17 +29,18 @@ void schedule(ctx_t* ctx) {
 
 
 void prioritySchedule(ctx_t* ctx) {
-
+  //Increase priority for everything not loaded
   for(int i = 0; i < maxProcesses; i++){
       if(i == currentProcess){
         pcb[ i ].priority = pcb[ i ].originalPriority;
         continue;
       }
-      if(pcb[ i ].active != 0){
+      if(pcb[ i ].active == 1){
         pcb[ i ].priority = pcb[ i ].priority + 1;
       }
   }
   memcpy( &pcb[ currentProcess ].ctx, ctx, sizeof( ctx_t ) ); // Save
+  //Find next process to load
   for(int i = 0; i < maxProcesses; i++){
     if(pcb[ i ].active == 0)continue;
     else if(pcb[ i ].priority > pcb[ currentProcess ].priority){
@@ -62,15 +63,6 @@ extern uint32_t tos_P5;
 extern void     main_console();
 extern uint32_t tos_console;
 
-void createPCB(ctx_t* ctx){
-  memset(&pcb[maxProcesses], 0, sizeof( pcb_t ));
-  memcpy(&pcb[maxProcesses].ctx, ctx,sizeof( ctx_t ) );
-  pcb[maxProcesses].pid = maxProcesses + 1;
-  pcb[maxProcesses].active = 1;
-  pcb[maxProcesses].ctx.gpr[0] = 0;
-  maxProcesses = maxProcesses + 1;
-}
-
 void hilevel_handler_rst(ctx_t* ctx) {
   /* Initialise PCBs representing processes stemming from execution of
    * the two user programs.  Note in each case that
@@ -89,8 +81,7 @@ void hilevel_handler_rst(ctx_t* ctx) {
   pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_console );
   pcb[ 0 ].ctx.sp   = ( uint32_t )( &tos_console  );
 
-  memcpy(ctx, &pcb[ 0 ].ctx, sizeof(ctx_t));
-  current = &pcb[ currentProcess ];
+  memcpy(ctx, &pcb[ currentProcess ].ctx, sizeof(ctx_t));
 
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
@@ -159,26 +150,29 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     case 0x02 : {// read(fd, x, n)
 
     }
-    case 0x03 : {// fork()
+    case 0x03 : {// fork(x)
       memset(&pcb[maxProcesses], 0, sizeof( pcb_t ));
-      memcpy(&pcb[maxProcesses].ctx, ctx,sizeof( ctx_t ) );
+      memcpy(&pcb[maxProcesses].ctx, ctx, sizeof( ctx_t ) );
       pcb[ maxProcesses ].pid = maxProcesses + 1;
-      pcb[ maxProcesses ].priority = ( int ) ctx->gpr[0];
-      pcb[ maxProcesses ].originalPriority = ( int ) ctx->gpr[0];
+      int x = (int) ctx->gpr[0];
+      pcb[ maxProcesses ].priority = x;
+      pcb[ maxProcesses ].originalPriority = x;
       pcb[ maxProcesses ].active = 1;
-      pcb[ maxProcesses ].ctx.sp   = ( uint32_t ) pcb[maxProcesses-1].ctx.sp + 0x00001000;
+      pcb[ maxProcesses ].ctx.sp   = ( uint32_t ) pcb[maxProcesses - 1].ctx.sp + 0x00001000;
       pcb[ maxProcesses ].ctx.gpr[0] = 0;
       ctx->gpr[0] = pcb[ maxProcesses ].pid;
       maxProcesses = maxProcesses + 1;
       break;
     }
     case 0x04 : {// exit(x)
-      lastLoaded->active = 0;
+      //lastLoaded->active = 0;
+      pcb[currentProcess].active = 0;
       break;
     }
     case 0x05 : {// exec(x)
-      int x = (int) ctx -> gpr[0];
-      ctx->pc = x;
+      ctx->sp = &tos_console +  0x00001000;
+      //int x = (int) ctx->gpr[0];
+      ctx->pc =(uint32_t) ctx->gpr[0];
       break;
     }
     case 0x06 : {// kill(pid, x)
