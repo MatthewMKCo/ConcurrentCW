@@ -62,8 +62,8 @@ void main_console() {
     puts( "shell$ ", 7 ); gets( x, 1024 ); p = strtok( x, " " );
 
     if     ( 0 == strcmp( p, "fork" ) ) {
-      //int token = atoi(strtok( NULL, " "));
-      pid_t pid = fork(25);
+      int token = atoi(strtok( NULL, " "));
+      pid_t pid = fork(token);
 
       if( 0 == pid ) {
         void* addr = load( strtok( NULL, " " ) );
@@ -79,15 +79,11 @@ void main_console() {
       kill( pid, s );
     }
     else if( 0 == strcmp(p, "phil")){
-        for(int i=0; i<3; i++){
-          int pid = fork(10);
+      int token = atoi(strtok(NULL, " "));
+        for(int i=0; i<15; i++){
+          int pid = fork(token);
+
           if(0 == pid){
-            if(i == 0)write(STDOUT_FILENO, "0", 2);
-            if(i == 1)write(STDOUT_FILENO, "1", 2);
-            if(i == 2)write(STDOUT_FILENO, "2", 2);
-            if(i == 3)write(STDOUT_FILENO, "3", 2);
-            if(i == 4)write(STDOUT_FILENO, "4", 2);
-            //void* addr = load("P3");
             exec( &main_P3 );
             write(STDOUT_FILENO,"oh no",5);
           }

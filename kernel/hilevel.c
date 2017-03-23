@@ -176,8 +176,8 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     }
     case 0x05 : {// exec(x)
     //  ctx->sp = &tos_console +  0x00001000;
-      //int x = (int) ctx->gpr[0];
-      ctx->pc =(uint32_t) ctx->gpr[0];
+      uint32_t x = (uint32_t) ctx->gpr[0];
+      ctx->pc = x;
       break;
     }
     case 0x06 : {// kill(pid, x)
