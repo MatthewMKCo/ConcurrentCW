@@ -68,7 +68,7 @@ void main_console() {
       if( 0 == pid ) {
         void* addr = load( strtok( NULL, " " ) );
         exec( addr );
-        // goto *addr;
+         //goto *addr;
         write(STDOUT_FILENO,"oh no",5);
       }
     }

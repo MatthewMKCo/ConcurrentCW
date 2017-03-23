@@ -33,6 +33,9 @@ void prioritySchedule(ctx_t* ctx) {
   for(int i = 0; i < maxProcesses; i++){
       if(i == currentProcess){
         pcb[ i ].priority = pcb[ i ].originalPriority;
+        if(pcb[ i ].active == 0){
+          pcb[ i ].priority = 0;
+        }
         continue;
       }
       if(pcb[ i ].active == 1){
@@ -158,7 +161,8 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
       pcb[ maxProcesses ].priority = x;
       pcb[ maxProcesses ].originalPriority = x;
       pcb[ maxProcesses ].active = 1;
-      pcb[ maxProcesses ].ctx.sp   = ( uint32_t ) pcb[maxProcesses - 1].ctx.sp + 0x00001000;
+      int spDifference = pcb[maxProcesses].pid - pcb[0].pid;
+      pcb[ maxProcesses ].ctx.sp   = ( uint32_t ) pcb[maxProcesses - 1].ctx.sp + (spDifference * 0x00001000);
       pcb[ maxProcesses ].ctx.gpr[0] = 0;
       ctx->gpr[0] = pcb[ maxProcesses ].pid;
       maxProcesses = maxProcesses + 1;
@@ -167,10 +171,11 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     case 0x04 : {// exit(x)
       //lastLoaded->active = 0;
       pcb[currentProcess].active = 0;
+      prioritySchedule(ctx);
       break;
     }
     case 0x05 : {// exec(x)
-      ctx->sp = &tos_console +  0x00001000;
+    //  ctx->sp = &tos_console +  0x00001000;
       //int x = (int) ctx->gpr[0];
       ctx->pc =(uint32_t) ctx->gpr[0];
       break;
