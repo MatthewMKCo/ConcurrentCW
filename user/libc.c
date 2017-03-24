@@ -62,7 +62,7 @@ int write( int fd, const void* x, size_t n ) {
                 "mov r2, %4 \n" // assign r2 =  n
                 "svc %1     \n" // make system call SYS_WRITE
                 "mov %0, r0 \n" // assign r  = r0
-              : "=r" (r) 
+              : "=r" (r)
               : "I" (SYS_WRITE), "r" (fd), "r" (x), "r" (n)
               : "r0", "r1", "r2" );
 
@@ -77,20 +77,20 @@ int  read( int fd,       void* x, size_t n ) {
                 "mov r2, %4 \n" // assign r2 =  n
                 "svc %1     \n" // make system call SYS_READ
                 "mov %0, r0 \n" // assign r  = r0
-              : "=r" (r) 
-              : "I" (SYS_READ),  "r" (fd), "r" (x), "r" (n) 
+              : "=r" (r)
+              : "I" (SYS_READ),  "r" (fd), "r" (x), "r" (n)
               : "r0", "r1", "r2" );
 
   return r;
 }
 
-int fork() {
+int fork(int x) {
   int r;
 
   asm volatile( "svc %1     \n" // make system call SYS_FORK
-                "mov %0, r0 \n" // assign r  = r0 
-              : "=r" (r) 
-              : "I" (SYS_FORK)
+                "mov %0, r0 \n" // assign r  = r0
+              : "=r" (r)
+              : "I" (SYS_FORK), "r" (x)
               : "r0" );
 
   return r;
@@ -123,9 +123,16 @@ int kill( int pid, int x ) {
                 "mov r1, %3 \n" // assign r1 =    x
                 "svc %1     \n" // make system call SYS_KILL
                 "mov %0, r0 \n" // assign r0 =    r
-              : "=r" (r) 
+              : "=r" (r)
               : "I" (SYS_KILL), "r" (pid), "r" (x)
               : "r0", "r1" );
 
   return r;
+}
+
+void create_Pipe() {
+  asm volatile( "mov r0, \n"
+                ""
+
+                  )
 }

@@ -183,6 +183,9 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     case 0x06 : {// kill(pid, x)
 
     }
+    case 0x07 : {
+      
+    }
     default   : { // 0x?? => unknown/unsupported
       break;
     }

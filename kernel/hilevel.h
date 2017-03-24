@@ -19,6 +19,7 @@
 
 #include "lolevel.h"
 #include     "int.h"
+#include "pipe.h"
 
 /* The kernel source code is made simpler via three type definitions:
  *
