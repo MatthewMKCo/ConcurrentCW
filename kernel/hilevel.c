@@ -2,6 +2,7 @@
 
 pcb_t pcb[ 100 ], *current = NULL, *lastLoaded = NULL;
 int currentProcess = 0, maxProcesses = 1;
+pipe pipes[100] = {NULL};
 /*
 current = &pcb[ 0 ];
 memcpy( ctx, &pcb[ currentProcess ].ctx, sizeof( ctx_t ) );
@@ -151,7 +152,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
       break;
     }
     case 0x02 : {// read(fd, x, n)
-
+      break;
     }
     case 0x03 : {// fork(x)
       memset(&pcb[maxProcesses], 0, sizeof( pcb_t ));
@@ -181,10 +182,20 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
       break;
     }
     case 0x06 : {// kill(pid, x)
-
+      break;
     }
-    case 0x07 : {
-      
+    case 0x07 : {// create_Pipe
+      ctx->gpr[0] = pcb[ currentProcess ].pid;
+      if(pcb[ currentProcess + 1 ].pid != NULL){
+        for(int i = 0; i < 100; i++){
+          if(pipes[i].block == NULL){
+            pipes[i].pidSender = pcb[ currentProcess].pid;
+            pipes[i].pidReceiver = pcb[ currentProcess + 1 ].pid;
+          }
+        }
+      }
+      else ctx->gpr[0] = -1;
+      break;
     }
     default   : { // 0x?? => unknown/unsupported
       break;

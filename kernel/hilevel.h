@@ -14,12 +14,12 @@
 #include   "GIC.h"
 #include "PL011.h"
 #include "SP804.h"
+#include "PL011.h"
 
 // Include functionality relating to the   kernel.
 
 #include "lolevel.h"
 #include     "int.h"
-#include "pipe.h"
 
 /* The kernel source code is made simpler via three type definitions:
  *
@@ -44,5 +44,12 @@ typedef struct {
   int priority;
   int originalPriority;
 } pcb_t;
+
+typedef struct {
+  int write;
+  int block;
+  int read;
+  int pidReceiver, pidSender;
+} pipe;
 
 #endif

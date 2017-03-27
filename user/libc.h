@@ -66,7 +66,10 @@ extern void exec( const void* x );
 // signal process identified by pid with signal x
 extern int  kill( pid_t pid, int x );
 
-// create two pipes between two processes
-extern void create_Pipe();
+// create a pipe between two processes
+extern int create_Pipe(int x);
+
+// open pipe on the a process' end
+extern void open_Pipe(int PID);
 
 #endif

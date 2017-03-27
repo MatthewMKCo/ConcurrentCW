@@ -24,6 +24,9 @@ SECTIONS {
   /* allocate stack for P5           */
   .       = . + 0x00001000;
   tos_P5  = .;
+  /* allocate stack for Philosopher  */
+  .       = . + 0x00001000;
+  tos_Phil  = .;
   /* allocate stack for Console           */
   .       = . + 0x00001000;
   tos_console  = .;

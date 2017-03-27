@@ -1,22 +1,15 @@
 #include "philosopher.h"
 
-void main_phil(){
-  create_Pipe();
-  int fork = 0;
-  int eating = 0;
-  int openRightPipe = 0;
-  int openLeftPipe = 0;
-  int fd[2];
+void main_Phil(){
   while(1){
-    if(openRightPipe == 0){
-      fd[0] = open();
-      open = 1;
+    int PID = create_Pipe(1);
+    if(PID == -1){
+      //PL011_putc(UART0, '0', true);
+      continue;
     }
-    if(open == 1){
-      write(fd[1], "Give Fork", 9);
-      close();
-      open = 0;
-    }
-
+    else break;
   }
+  PL011_putc(UART0, '0', true);
+  //open_Pipe(PID);
+  exit(EXIT_SUCCESS);
 }

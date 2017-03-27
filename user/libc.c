@@ -130,9 +130,14 @@ int kill( int pid, int x ) {
   return r;
 }
 
-void create_Pipe() {
-  asm volatile( "mov r0, \n"
-                ""
+int create_Pipe(int x) {
+  int r;
 
-                  )
+  asm volatile( "svc %1     \n"
+                "mov %0, r0 \n"
+                :"=r" (r)
+                :"I" (SYS_PIPE), "r" (x)
+             );
+
+  return r;
 }

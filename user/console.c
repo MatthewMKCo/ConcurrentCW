@@ -31,7 +31,7 @@ void gets( char* x, int n ) {
 extern void main_P3();
 extern void main_P4();
 extern void main_P5();
-extern void main_phil();
+extern void main_Phil();
 
 void* load( char* x ) {
   if     ( 0 == strcmp( x, "P3" ) ) {
@@ -84,7 +84,7 @@ void main_console() {
           int pid = fork(token);
 
           if(0 == pid){
-            exec( &main_P3 );
+            exec( &main_Phil );
             write(STDOUT_FILENO,"oh no",5);
           }
           }
