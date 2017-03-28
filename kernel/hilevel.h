@@ -47,9 +47,9 @@ typedef struct {
 
 typedef struct {
   int write;
-  int block;
-  int read;
+  int used;
   int pidReceiver, pidSender;
+  int receiverFlag, senderFlag;
 } pipe;
 
 #endif

@@ -32,6 +32,7 @@ extern void main_P3();
 extern void main_P4();
 extern void main_P5();
 extern void main_Phil();
+extern void main_Middleman();
 
 void* load( char* x ) {
   if     ( 0 == strcmp( x, "P3" ) ) {
@@ -79,16 +80,14 @@ void main_console() {
       kill( pid, s );
     }
     else if( 0 == strcmp(p, "phil")){
-      int token = atoi(strtok(NULL, " "));
-        for(int i=0; i<15; i++){
-          int pid = fork(token);
+          int pid = fork(10);
 
           if(0 == pid){
-            exec( &main_Phil );
+            exec( &main_Middleman );
             write(STDOUT_FILENO,"oh no",5);
           }
           }
-      }
+
     else {
       puts( "unknown command\n", 16 );
     }

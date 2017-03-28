@@ -184,17 +184,22 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     case 0x06 : {// kill(pid, x)
       break;
     }
-    case 0x07 : {// create_Pipe
-      ctx->gpr[0] = pcb[ currentProcess ].pid;
-      if(pcb[ currentProcess + 1 ].pid != NULL){
-        for(int i = 0; i < 100; i++){
-          if(pipes[i].block == NULL){
-            pipes[i].pidSender = pcb[ currentProcess].pid;
-            pipes[i].pidReceiver = pcb[ currentProcess + 1 ].pid;
-          }
+    case 0x07 : {// create_Pipe(int sender, int receiver)
+      for(int i = 0; i < 100; i++){
+        if(pipes[i].used == NULL | pipes[i].used == 0){
+          pipes[i].pidSender = ( int )ctx->gpr[0];
+          pipes[i].pidReceiver = ( int )ctx->gpr[1];
+          pipes[i].receiverFlag = 0;
+          pipes[i].senderFlag = 0;
+          pipes[i].used = 1;
+          ctx->gpr[0] = i;
+          break;
         }
       }
-      else ctx->gpr[0] = -1;
+      break;
+    }
+    case 0x15 : {// get_PID()
+      ctx->gpr[0] = pcb[currentProcess].pid;
       break;
     }
     default   : { // 0x?? => unknown/unsupported
