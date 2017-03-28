@@ -71,7 +71,7 @@ extern int  kill( pid_t pid, int x );
 extern int create_Pipe(int sender, int receiver);
 
 // open pipe on the a process' end
-extern void open_Pipe();
+extern void open_Pipe(int fd);
 
 extern int get_PID();
 

@@ -145,6 +145,14 @@ int create_Pipe(int sender, int receiver) {
   return r;
 }
 
+void open_Pipe(int fd) {
+  asm volatile( "mov r0 , %1 \n"
+                "svc %0      \n"
+              :
+              : "I" (SYS_OPEN), "r" (fd) );
+              return;
+}
+
 int get_PID(){
   int r;
 

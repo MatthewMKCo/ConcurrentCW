@@ -12,6 +12,7 @@ void main_Middleman(){
     if(0 == pid){
       int currentPID = get_PID();
       create_Pipe(currentPID, originalPID);
+      open_Pipe(STDIN_FILENO);
     }
   }
 
