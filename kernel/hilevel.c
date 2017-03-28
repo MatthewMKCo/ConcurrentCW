@@ -2,6 +2,7 @@
 
 pcb_t pcb[ 100 ], *current = NULL, *lastLoaded = NULL;
 int currentProcess = 0, maxProcesses = 1;
+int numberOfPipes = 100;
 pipe pipes[100] = {NULL};
 /*
 current = &pcb[ 0 ];
@@ -140,13 +141,32 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
       break;
     }
     case 0x01 : { // 0x01 => write( fd, x, n )
+
       int   fd = ( int   )( ctx->gpr[ 0 ] );
-      char*  x = ( char* )( ctx->gpr[ 1 ] );
+
       int    n = ( int   )( ctx->gpr[ 2 ] );
 
-      for( int i = 0; i < n; i++ ) {
-        PL011_putc( UART0, *x++, true );
+      if(fd == 0){
+        for(int i = 0; i < numberOfPipes; i++){
+          if(pipes[i].pidSender == pcb[currentProcess].pid){
+            while(1){
+              if(pipes[i].senderFlag == 1 && pipes[i].receiverFlag){
+                int x = (int) (ctx->gpr[ 1 ]);
+                pipes[i].write = x;
+                break;
+              }
+            }
+          }
+        }
       }
+
+      else if(fd == 1){
+        char*  x = ( char* )( ctx->gpr[ 1 ] );
+        for( int i = 0; i < n; i++ ) {
+          PL011_putc( UART0, *x++, true );
+        }
+      }
+
 
       ctx->gpr[ 0 ] = n;
       break;
@@ -185,7 +205,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
       break;
     }
     case 0x07 : {// create_Pipe(int sender, int receiver)
-      for(int i = 0; i < 100; i++){
+      for(int i = 0; i < numberOfPipes; i++){
         if(pipes[i].used == NULL | pipes[i].used == 0){
           pipes[i].pidSender = ( int )ctx->gpr[0];
           pipes[i].pidReceiver = ( int )ctx->gpr[1];
@@ -197,6 +217,9 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
         }
       }
       break;
+    }
+    case 0x08 : {//open_Pipe()
+
     }
     case 0x15 : {// get_PID()
       ctx->gpr[0] = pcb[currentProcess].pid;
