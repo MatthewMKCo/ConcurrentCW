@@ -46,6 +46,7 @@ typedef struct {
 } pcb_t;
 
 typedef struct {
+  int fd;
   int write;
   int used;
   int pidReceiver, pidSender;

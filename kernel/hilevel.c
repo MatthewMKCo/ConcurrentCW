@@ -86,6 +86,10 @@ void hilevel_handler_rst(ctx_t* ctx) {
   pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_console );
   pcb[ 0 ].ctx.sp   = ( uint32_t )( &tos_console  );
 
+  for(int i = 0; i < numberOfPipes; i++){
+    pipes[i].fd = i + 5;
+  }
+
   memcpy(ctx, &pcb[ currentProcess ].ctx, sizeof(ctx_t));
 
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
@@ -151,30 +155,29 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
         for( int i = 0; i < n; i++ ) {
           PL011_putc( UART0, *x++, true );
         }
+              ctx->gpr[ 0 ] = n;
       }
 
       else{
-        for(int i = 0; i < numberOfPipes; i++){
-          if(pipes[i].pidSender == pcb[currentProcess].pid){
-            while(1){
-              if(pipes[i].senderFlag == 1 && pipes[i].receiverFlag == 1){
-                int x = (int) (ctx->gpr[ 1 ]);
-                pipes[i].write = x;
-                pipes[i].senderFlag == 0;
-                break;
-              }
-            }
-          }
+        if(pipes[fd - 5].senderFlag == 1 && pipes[fd - 5].receiverFlag == 1){
+          int x = (int) (ctx->gpr[ 1 ]);
+          pipes[fd - 5].write = x;
+          pipes[fd - 5].senderFlag = 0;
+          ctx->gpr[ 0 ] = 1;
         }
+        else ctx->gpr[ 0 ] = -1;
       }
-
-
-      ctx->gpr[ 0 ] = n;
       break;
     }
     case 0x02 : {// read(fd, x, n)
       int fd = (int)(ctx->gpr[0]);
+      int x = (int)(ctx->gpr[1]);
       int n = (int)(ctx->gpr[2]);
+      if(pipes[fd - 5].senderFlag == 0 && pipes[fd - 5].receiverFlag == 1){
+        ctx->gpr[0] = pipes[fd].write;
+        pipes[fd - 5].receiverFlag = 0;
+      }
+      else ctx->gpr[ 0 ] = -1;
       break;
     }
     case 0x03 : {// fork(x)
@@ -215,7 +218,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
           pipes[i].receiverFlag = 0;
           pipes[i].senderFlag = 0;
           pipes[i].used = 1;
-          ctx->gpr[0] = i;
+          ctx->gpr[0] = pipes[i].fd;
           break;
         }
       }
@@ -224,18 +227,21 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     case 0x08 : {//open_Pipe(int fd)
       int fd = ctx->gpr[0];
       for(int i = 0; i < numberOfPipes; i++){
-        if(fd == 0){
+        if(fd == 3){
           if(pipes[i].pidSender == pcb[currentProcess].pid){
             pipes[i].senderFlag = 1;
+            ctx->gpr[0] = pipes[i].fd;
             break;
           }
         }
-        else if(fd == 1){
+        else if(fd == 4){
           if(pipes[i].pidReceiver == pcb[currentProcess].pid){
             pipes[i].receiverFlag = 1;
+            ctx->gpr[0] = pipes[i].fd;
             break;
           }
         }
+        else if(i == numberOfPipes - 1)ctx->gpr[0] = -1;
       }
       break;
     }
