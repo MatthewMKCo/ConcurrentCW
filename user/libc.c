@@ -167,3 +167,15 @@ int get_PID(){
 
   return r;
 }
+
+int close(int fd) {
+  int r;
+
+  asm volatile( "mov r0, %2 \n"
+                "svc %1     \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "I" (SYS_CLOSE), "r" (fd)
+              : "r0" );
+  return r;
+}

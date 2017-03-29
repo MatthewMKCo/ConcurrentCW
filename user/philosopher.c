@@ -11,20 +11,23 @@ void main_Phil(){
     else break;
   }
   */
-  PL011_putc(UART0, '0', true);
+
   int fd;
   while(1){
     fd = open_Pipe(RDONLY);
     if(fd != -1)break;
+    yield();
   }
+  write(STDOUT_FILENO, "hi", 2);
 
-  int hi;
+  int* hi;
   int buf;
   while(1){
     buf = read(fd, hi, 1);
     if(buf != -1)break;
+    yield();
   }
-  write(STDOUT_FILENO, "hi", 2);
+  PL011_putc(UART0, buf + '0', true);
 
 
   //open_Pipe(PID);

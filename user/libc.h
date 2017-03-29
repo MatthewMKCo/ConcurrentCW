@@ -32,6 +32,7 @@ typedef int pid_t;
 #define SYS_KILL      ( 0x06 )
 #define SYS_PIPE      ( 0x07 )
 #define SYS_OPEN      ( 0x08 )
+#define SYS_CLOSE     ( 0x09 )
 #define SYS_GETPID    ( 0x15 )
 
 #define SIG_TERM      ( 0x00 )
@@ -76,5 +77,7 @@ extern int create_Pipe(int sender, int receiver);
 extern int open_Pipe(int fd);
 
 extern int get_PID();
+
+extern int close(int fd);
 
 #endif

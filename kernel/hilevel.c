@@ -3,7 +3,7 @@
 pcb_t pcb[ 100 ], *current = NULL, *lastLoaded = NULL;
 int currentProcess = 0, maxProcesses = 1;
 int numberOfPipes = 100;
-pipe pipes[100] = {NULL};
+pipe pipes[100];
 /*
 current = &pcb[ 0 ];
 memcpy( ctx, &pcb[ currentProcess ].ctx, sizeof( ctx_t ) );
@@ -142,6 +142,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
 
   switch( id ) {
     case 0x00 : { // 0x00 => yield()
+      prioritySchedule(ctx);
       break;
     }
     case 0x01 : { // 0x01 => write( fd, x, n )
@@ -174,7 +175,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
       int x = (int)(ctx->gpr[1]);
       int n = (int)(ctx->gpr[2]);
       if(pipes[fd - 5].senderFlag == 0 && pipes[fd - 5].receiverFlag == 1){
-        ctx->gpr[0] = pipes[fd].write;
+        ctx->gpr[0] = pipes[fd - 5].write;
         pipes[fd - 5].receiverFlag = 0;
       }
       else ctx->gpr[ 0 ] = -1;
@@ -212,7 +213,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     }
     case 0x07 : {// create_Pipe(int sender, int receiver)
       for(int i = 0; i < numberOfPipes; i++){
-        if(pipes[i].used == NULL | pipes[i].used == 0){
+        if(pipes[i].used == 0){
           pipes[i].pidSender = ( int )ctx->gpr[0];
           pipes[i].pidReceiver = ( int )ctx->gpr[1];
           pipes[i].receiverFlag = 0;
@@ -224,7 +225,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
       }
       break;
     }
-    case 0x08 : {//open_Pipe(int fd)
+    case 0x08 : {// open_Pipe(int fd)
       int fd = ctx->gpr[0];
       for(int i = 0; i < numberOfPipes; i++){
         if(fd == 3){
@@ -233,6 +234,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
             ctx->gpr[0] = pipes[i].fd;
             break;
           }
+          else if(i == numberOfPipes - 1)ctx->gpr[0] = -1;
         }
         else if(fd == 4){
           if(pipes[i].pidReceiver == pcb[currentProcess].pid){
@@ -240,9 +242,18 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
             ctx->gpr[0] = pipes[i].fd;
             break;
           }
+          else if(i == numberOfPipes - 1)ctx->gpr[0] = -1;
         }
-        else if(i == numberOfPipes - 1)ctx->gpr[0] = -1;
       }
+      break;
+    }
+    case 0x09 : {// close(int fd)
+      int fd = ctx->gpr[0];
+      if(pipes[fd - 5].receiverFlag == 0 && pipes[fd - 5].senderFlag == 0){
+        pipes[fd - 5].used = 0;
+        ctx->gpr[0] = 1;
+      }
+      else ctx->gpr[0] = -1;
       break;
     }
     case 0x15 : {// get_PID()
