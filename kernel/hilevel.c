@@ -146,7 +146,14 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
 
       int    n = ( int   )( ctx->gpr[ 2 ] );
 
-      if(fd == 0){
+      if(fd == 1){
+        char*  x = ( char* )( ctx->gpr[ 1 ] );
+        for( int i = 0; i < n; i++ ) {
+          PL011_putc( UART0, *x++, true );
+        }
+      }
+
+      else{
         for(int i = 0; i < numberOfPipes; i++){
           if(pipes[i].pidSender == pcb[currentProcess].pid){
             while(1){
@@ -161,18 +168,13 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
         }
       }
 
-      else if(fd == 1){
-        char*  x = ( char* )( ctx->gpr[ 1 ] );
-        for( int i = 0; i < n; i++ ) {
-          PL011_putc( UART0, *x++, true );
-        }
-      }
-
 
       ctx->gpr[ 0 ] = n;
       break;
     }
     case 0x02 : {// read(fd, x, n)
+      int fd = (int)(ctx->gpr[0]);
+      int n = (int)(ctx->gpr[2]);
       break;
     }
     case 0x03 : {// fork(x)
