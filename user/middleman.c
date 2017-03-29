@@ -31,7 +31,6 @@ void main_Middleman(){
     send[0] = 1;
     send[1] = 2;
     int size = sizeof(send);
-    /*
     if(i == 0){
       send[0] = childID[numberOfProcesses - 1];
       send[1] = childID[i + 1];
@@ -43,7 +42,7 @@ void main_Middleman(){
     else{
       send[0] = childID[i - 1];
       send[1] = childID[i + 1];
-    }*/
+    }
     while(1){
       int check = write(fd, send, size);
       if(check == 1)break;

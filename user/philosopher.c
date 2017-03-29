@@ -13,6 +13,8 @@ void main_Phil(){
   */
 
   int rightPhil, leftPhil;
+  int rightFork = 1, leftFork = 0;
+  int rightDirty = 1, leftDirty = 1;
   int thisPhil = get_PID();
 
   int fd;
@@ -34,6 +36,27 @@ void main_Phil(){
 
   leftPhil = hi[0];
   rightPhil = hi[1];
+  while(1){
+    if(rightFork == 0){
+      create_Pipe(thisPhil, rightPhil);
+      while(1){
+        fd = open_Pipe(WRONLY);
+        if(fd != -1)break;
+        yield();
+      }
+    }
+
+    if(leftFork == 0){
+      create_Pipe(thisPhil, rightPhil);
+      while(1){
+        fd = open_Pipe(WRONLY);
+        if(fd != -1)break;
+        yield();
+      }
+    }
+    create_Pipe(thisPhil,leftPhil);
+    open_Pipe(RDONLY);
+  }
   //open_Pipe(PID);
   exit(EXIT_SUCCESS);
 }
