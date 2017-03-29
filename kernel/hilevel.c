@@ -161,9 +161,10 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
 
       else{
         if(pipes[fd - 5].senderFlag == 1 && pipes[fd - 5].receiverFlag == 1){
-          int x = (int) (ctx->gpr[ 1 ]);
+          void *x = (void*) (ctx->gpr[ 1 ]);
           pipes[fd - 5].write = x;
           pipes[fd - 5].senderFlag = 0;
+          pipes[fd - 5].size = n;
           ctx->gpr[ 0 ] = 1;
         }
         else ctx->gpr[ 0 ] = -1;
@@ -172,11 +173,13 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     }
     case 0x02 : {// read(fd, x, n)
       int fd = (int)(ctx->gpr[0]);
-      int x = (int)(ctx->gpr[1]);
       int n = (int)(ctx->gpr[2]);
+      void* x = (void*)(ctx->gpr[1]);
       if(pipes[fd - 5].senderFlag == 0 && pipes[fd - 5].receiverFlag == 1){
-        ctx->gpr[0] = pipes[fd - 5].write;
+        ctx->gpr[0] = 1;
         pipes[fd - 5].receiverFlag = 0;
+        //x = pipes[fd - 5].write;
+        memcpy(x, pipes[fd-5].write, pipes[fd - 5].size);
       }
       else ctx->gpr[ 0 ] = -1;
       break;

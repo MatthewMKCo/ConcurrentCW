@@ -12,6 +12,9 @@ void main_Phil(){
   }
   */
 
+  int rightPhil, leftPhil;
+  int thisPhil = get_PID();
+
   int fd;
   while(1){
     fd = open_Pipe(RDONLY);
@@ -20,16 +23,17 @@ void main_Phil(){
   }
   write(STDOUT_FILENO, "hi", 2);
 
-  int* hi;
+  int hi[2];
   int buf;
   while(1){
-    buf = read(fd, hi, 1);
+    buf = read(fd, hi, sizeof(hi));
     if(buf != -1)break;
     yield();
   }
-  PL011_putc(UART0, buf + '0', true);
+  PL011_putc(UART0, hi[1] + '0', true);
 
-
+  leftPhil = hi[0];
+  rightPhil = hi[1];
   //open_Pipe(PID);
   exit(EXIT_SUCCESS);
 }
