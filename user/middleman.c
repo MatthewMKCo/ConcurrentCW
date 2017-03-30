@@ -14,30 +14,32 @@ void main_Middleman(){
 
     if(0 == pid){
       while(1){
+        int pid2 = get_PID();
         fd = open_Pipe(RDONLY, originalPID, get_PID());
         if(fd != -1)break;
         write(STDOUT_FILENO, "wrong", 5);
+        PL011_putc(UART0, pid2 + '0', true);
+        write(STDOUT_FILENO, "hi", 2);
         yield();
       }
       exec(&main_Phil);
 
     }
     else{
-      for(int x = 0; x < numberOfProcesses; x++){
-        if(childID[x] == 0){
-          childID[x] = pid;
-          create_Pipe(originalPID, childID[x]);
-          //yield();
+      for(int i = 0; i < numberOfProcesses; i++){
+        if(childID[i] == 0){
+          childID[i] = pid;
           break;
         }
       }
     }
   }
-/*
+
   for(int i = 0; i < numberOfProcesses; i++){
     create_Pipe(originalPID, childID[i]);
-  }*/
+  }
   for(int i = 0; i < numberOfProcesses; i++){
+
     int fd = open_Pipe(WRONLY, originalPID, childID[i]);
     int send[2];
     int size = sizeof(send);
@@ -57,13 +59,15 @@ void main_Middleman(){
       int check = write(fd, send, size);
       if(check == 1)break;
       yield();
-    }/*
+    }
     while(1){
       int check = close(fd);
       if(check == 1)break;
       yield();
-    }*/
+    }
   }
+
+
 /*
   create_Pipe(originalPID, childID[0]);
   int fd = open_Pipe(WRONLY);
