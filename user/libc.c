@@ -72,12 +72,13 @@ int write( int fd, const void* x, size_t n ) {
 int  read( int fd,       void* x, size_t n ) {
   int r;
 
-  asm volatile( "mov r0, %2 \n" // assign r0 = fd
-                "mov r1, %3 \n" // assign r1 =  x
-                "mov r2, %4 \n" // assign r2 =  n
-                "svc %1     \n" // make system call SYS_READ
+  asm volatile( "mov r0, %3 \n" // assign r0 = fd
+                "mov r1, %4 \n" // assign r1 =  x
+                "mov r2, %5 \n" // assign r2 =  n
+                "svc %2     \n" // make system call SYS_READ
                 "mov %0, r0 \n" // assign r  = r0
-              : "=r" (r)
+                "mov %1, r1 \n"
+              : "=r" (r), "=r" (x)
               : "I" (SYS_READ),  "r" (fd), "r" (x), "r" (n)
               : "r0", "r1", "r2" );
 
@@ -145,14 +146,16 @@ int create_Pipe(int sender, int receiver) {
   return r;
 }
 
-int open_Pipe(int fd) {
+int open_Pipe(int fd, int sender, int receiver) {
   int r;
 
-  asm volatile( "mov r0 , %2 \n"
-                "svc %1      \n"
-                "mov %0, r0  \n"
+  asm volatile( "mov r0, %2 \n"
+                "mov r1, %3 \n"
+                "mov r2, %4 \n"
+                "svc %1     \n"
+                "mov %0, r0 \n"
               : "=r" (r)
-              : "I" (SYS_OPEN), "r" (fd)
+              : "I" (SYS_OPEN), "r" (fd), "r" (sender), "r" (receiver)
               : "r0");
               return r;
 }
@@ -176,6 +179,25 @@ int close(int fd) {
                 "mov %0, r0 \n"
               : "=r" (r)
               : "I" (SYS_CLOSE), "r" (fd)
+              : "r0" );
+  return r;
+}
+
+void block_Pipe(int fd, int sender, int receiver) {
+  asm volatile( "mov r0, %1 \n"
+                "mov r1, %2 \n"
+                "svc %0     \n"
+              :
+              : "I" (SYS_BLOCK), "r" (fd), "r" (receiver));
+  return;
+}
+
+int get_Last_Pipe() {
+  int r;
+  asm volatile( "svc %1     \n"
+                "mov %0, r0 \n"
+              : "=r"(r)
+              : "I" (SYS_LAST)
               : "r0" );
   return r;
 }

@@ -43,6 +43,7 @@ typedef struct {
   int active;
   int priority;
   int originalPriority;
+  int lastPipeLinked;
 } pcb_t;
 
 typedef struct {

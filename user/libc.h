@@ -33,6 +33,8 @@ typedef int pid_t;
 #define SYS_PIPE      ( 0x07 )
 #define SYS_OPEN      ( 0x08 )
 #define SYS_CLOSE     ( 0x09 )
+#define SYS_BLOCK     ( 0x10 )
+#define SYS_LAST      ( 0x11 )
 #define SYS_GETPID    ( 0x15 )
 
 #define SIG_TERM      ( 0x00 )
@@ -74,10 +76,13 @@ extern int  kill( pid_t pid, int x );
 extern int create_Pipe(int sender, int receiver);
 
 // open pipe on the a process' end
-extern int open_Pipe(int fd);
+extern int open_Pipe(int fd, int sender, int receiever);
 
 extern int get_PID();
 
 extern int close(int fd);
 
+extern void block_Pipe(int fd, int sender, int receiver);
+
+extern int get_Last_Pipe();
 #endif
