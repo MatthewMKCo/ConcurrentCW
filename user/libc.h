@@ -35,6 +35,7 @@ typedef int pid_t;
 #define SYS_CLOSE     ( 0x09 )
 #define SYS_BLOCK     ( 0x10 )
 #define SYS_LAST      ( 0x11 )
+#define SYS_SEND      ( 0x12 )
 #define SYS_GETPID    ( 0x15 )
 
 #define SIG_TERM      ( 0x00 )
@@ -85,4 +86,6 @@ extern int close(int fd);
 extern void block_Pipe(int fd, int sender, int receiver);
 
 extern int get_Last_Pipe();
+
+extern int write_Pipe(int fd, void* x, size_t n);
 #endif

@@ -4,8 +4,8 @@ extern void main_Phil();
 
 void main_Middleman(){
   int originalPID = get_PID();
-  int numberOfProcesses = 2;
-  int childID[numberOfProcesses];
+  int numberOfProcesses = 3;
+  int childID[3];
 
   for(int i = 0; i < numberOfProcesses; i++){
     int pid = fork(10);
@@ -17,54 +17,67 @@ void main_Middleman(){
         int pid2 = get_PID();
         fd = open_Pipe(RDONLY, originalPID, get_PID());
         if(fd != -1)break;
+        /*
         write(STDOUT_FILENO, "wrong", 5);
         PL011_putc(UART0, pid2 + '0', true);
         write(STDOUT_FILENO, "hi", 2);
+        */
         yield();
       }
       exec(&main_Phil);
 
     }
     else{
-      for(int i = 0; i < numberOfProcesses; i++){
-        if(childID[i] == 0){
-          childID[i] = pid;
+      for(int y = 0; y < numberOfProcesses; y++){
+        if(childID[y] == 0){
+          childID[y] = pid;
+          create_Pipe(originalPID, childID[y]);
+          yield();
           break;
         }
       }
     }
   }
-
+/*
   for(int i = 0; i < numberOfProcesses; i++){
-    create_Pipe(originalPID, childID[i]);
-  }
+    //create_Pipe(originalPID, childID[i]);
+  }*/
+  int send[16][2];
   for(int i = 0; i < numberOfProcesses; i++){
-
+    //create_Pipe(originalPID, childID[i]);
     int fd = open_Pipe(WRONLY, originalPID, childID[i]);
-    int send[2];
-    int size = sizeof(send);
+
     if(i == 0){
-      send[0] = childID[numberOfProcesses - 1];
-      send[1] = childID[i + 1];
+      send[i][0] = childID[numberOfProcesses - 1];
+      send[i][1] = childID[i + 1];
     }
     else if(i == numberOfProcesses - 1){
-      send[0] = childID[i - 1];
-      send[1] = childID[0];
+      send[i][0] = childID[i - 1];
+      send[i][1] = childID[0];
     }
     else{
-      send[0] = childID[i - 1];
-      send[1] = childID[i + 1];
+      send[i][0] = childID[i - 1];
+      send[i][1] = childID[i + 1];
     }
+    //send[i][0] = 1 + i;
+    //send[i][1] = 5 + i;
+    size_t size = sizeof(send[i]);
+//    int (*send2)[2] = &send;
+//    size_t size2 = sizeof(send2);
+//    void* send3 = &send2;
+//    size_t size3 = sizeof(send3);
     while(1){
-      int check = write(fd, send, size);
-      if(check == 1)break;
+      int check = write_Pipe(fd, send[i], size);
+      if(check != -1)break;
       yield();
     }
+    //write(STDOUT_FILENO, "through", 7);
+    /*
     while(1){
       int check = close(fd);
       if(check == 1)break;
       yield();
-    }
+    }*/
   }
 
 

@@ -19,38 +19,41 @@ void main_Phil(){
 
   int fd = get_Last_Pipe();
 
-  write(STDOUT_FILENO, "hi", 2);
-
+  //write(STDOUT_FILENO, "hi", 2);
   int* buf;
-  int size = sizeof(buf);
+  int size = 2;
   while(1){
-    int check = read(fd, buf, sizeof(buf));
+    //int check = 0;
+    int check = read(fd, buf, 2);
     if(check != -1)break;
-    //write(STDOUT_FILENO, "help", 4);
+//    write(STDOUT_FILENO, "help", 4);
     yield();
   }
-  write(STDOUT_FILENO, thisPhil + '0', 2);
-  write(STDOUT_FILENO, "fu", 2);
-  PL011_putc(UART0, buf[1] + '0', true);
+//PL011_putc(UART0, thisPhil + '0', true);
+//  write(STDOUT_FILENO, "fu", 2);
+
+  //PL011_putc(UART0, buf[1] + '0', true);
+  //write(STDOUT_FILENO, "fu", 2);
   leftPhil = buf[0];
   rightPhil = buf[1];
   yield();
-  int forkreq;
-  forkreq = 1;
-/*
+  int forkreq[1] = {1};
+  create_Pipe(thisPhil, leftPhil);
+  create_Pipe(thisPhil, rightPhil);
+
   while(1){
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    int open = 0, writeCheck = -1, readCheck = -1, buf2;
+    int open = 0, writeCheck = -1, readCheck = -1;
+    int* buf2;
     int fd2 = -1; //WRITE current philosoper to left philosopher
     int fd3 = -1; //READ right philosopher to current philosopher
     int fd4 = -1; //WRITE current philosopher to right philosopher
     int fd5 = -1; //READ left philosopher to current philosopher
     int readCheckfromfd3 = -1, readCheckfromfd5 = -1;
     int writeChecktofd2 = -1, writeChecktofd4 = -1;
-    int forksent = 2;
+    int forksent[1] = {2};
     int reset = 0;
-    create_Pipe(thisPhil, leftPhil);
-    create_Pipe(thisPhil, rightPhil);
+    //write(STDOUT_FILENO, "work", 4);
     //1 = fork request
     //2 = fork sent
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,7 +81,7 @@ void main_Phil(){
         //Fork request given by philosopher on his right, blocking sending
         //request to the philosopher on his left and sending fork over after
         //cleaning to the right
-        if(readCheckfromfd3 != -1 && buf2 == 1){
+        if(readCheckfromfd3 != -1 && buf2[0] == 1){
           block_Pipe(WRONLY, thisPhil, leftPhil);
           rightDirty = 0;
           write(fd4 ,forksent, sizeof(int));
@@ -86,7 +89,7 @@ void main_Phil(){
           reset = 1;
         }
         //Fork sent by philosopher on the left
-        if(readCheckfromfd5 != -1 && buf2 == 2){
+        if(readCheckfromfd5 != -1 && buf2[0] == 2){
           leftFork = 1;
           reset = 1;
         }
@@ -107,11 +110,12 @@ void main_Phil(){
     if(reset == 1)continue;
 
     while(rightFork == 1 && leftFork == 1){
-      write(STDOUT_FILENO, "work", 4);
+      PL011_putc(UART0, thisPhil + '0', true);
+      //write(STDOUT_FILENO, "work", 4);
     }
 
     if(reset == 1)continue;
   }
-*/
+
   exit(EXIT_SUCCESS);
 }

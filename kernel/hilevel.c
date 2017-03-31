@@ -161,8 +161,11 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
 
       else{
         if(pipes[fd - 5].senderFlag == 1 && pipes[fd - 5].receiverFlag == 1){
-          void *x = (void*) (ctx->gpr[ 1 ]);
-          pipes[fd - 5].write = x;
+          void* x = (void*) (ctx->gpr[ 1 ]);
+          //pipes[fd - 5].write = x;
+          memcpy(pipes[fd-5].write, (void*) ctx->gpr[ 1 ], n);
+          //memcpy(pipes[fd-5].write, ctx->gpr[1], n);
+          //memmove(pipes[fd-5].write, ctx->gpr[1], n);
           pipes[fd - 5].senderFlag = 2;
           pipes[fd - 5].size = n;
           ctx->gpr[ 0 ] = 1;
@@ -177,9 +180,11 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
       void* x = (void*)(ctx->gpr[1]);
       if(pipes[fd - 5].senderFlag == 2 && pipes[fd - 5].receiverFlag == 1){
         ctx->gpr[0] = 1;
-        pipes[fd - 5].receiverFlag = 2;
         //x = pipes[fd - 5].write;
-        memcpy(ctx->gpr[1], pipes[fd-5].write, pipes[fd - 5].size);
+        memcpy(x, pipes[fd-5].write, pipes[fd - 5].size);
+        void* y = pipes[fd-5].write;
+        x = y;
+        pipes[fd - 5].receiverFlag = 2;
       }
       else ctx->gpr[ 0 ] = -1;
       break;
@@ -292,6 +297,24 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     }
     case 0x11 : {//get_Last_Pipe()
       ctx->gpr[0] = pcb[currentProcess].lastPipeLinked;
+      break;
+    }
+    case 0x12 : {//write_Pipe(int fd, void* x, size_t n)
+      int fd = (int)ctx->gpr[0];
+      void* x = (void*) ctx->gpr[1];
+      size_t n = (size_t) ctx->gpr[2];
+
+      if(pipes[fd - 5].senderFlag == 1 && pipes[fd - 5].receiverFlag == 1){
+        pipes[fd - 5].senderFlag = 2;
+        pipes[fd - 5].size = n;
+        pipes[fd - 5].write = x;
+        //memcpy(pipes[fd-5].write, x, n);
+        //memcpy(pipes[fd-5].write, ctx->gpr[1], n);
+        //memmove(pipes[fd-5].write, ctx->gpr[1], n);
+
+        ctx->gpr[ 0 ] = 1;
+      }
+      else ctx->gpr[ 0 ] = -1;
       break;
     }
     case 0x15 : {// get_PID()

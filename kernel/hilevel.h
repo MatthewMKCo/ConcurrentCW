@@ -48,7 +48,7 @@ typedef struct {
 
 typedef struct {
   int fd;
-  int size;
+  size_t size;
   void* write;
   int used;
   int pidReceiver, pidSender;

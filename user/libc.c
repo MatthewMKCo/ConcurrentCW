@@ -201,3 +201,16 @@ int get_Last_Pipe() {
               : "r0" );
   return r;
 }
+
+int write_Pipe(int fd, void* x, size_t n) {
+  int r;
+  asm volatile( "mov r0, %2 \n"
+                "mov r1, %3 \n"
+                "mov r2, %4 \n"
+                "svc %1     \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "I" (SYS_SEND), "r" (fd), "r" (x), "r" (n)
+              : "r0", "r1", "r2");
+  return r;
+}
