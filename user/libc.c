@@ -24,6 +24,12 @@ void itoa( char* r, int x ) {
   if( x < 0 ) {
     p++; t = -x; n = 1;
   }
+  else if( x == 0){
+    *p = '0';
+    p++;
+    *p = '\0';
+    return;
+  }
   else {
          t = +x; n = 1;
   }
@@ -183,13 +189,17 @@ int close(int fd) {
   return r;
 }
 
-void block_Pipe(int fd, int sender, int receiver) {
-  asm volatile( "mov r0, %1 \n"
-                "mov r1, %2 \n"
-                "svc %0     \n"
-              :
-              : "I" (SYS_BLOCK), "r" (fd), "r" (receiver));
-  return;
+int block_Pipe(int fd, int sender, int receiver) {
+  int r;
+  asm volatile( "mov r0, %2 \n"
+                "mov r1, %3 \n"
+                "mov r2, %4 \n"
+                "svc %1     \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "I" (SYS_BLOCK), "r" (fd), "r" (sender), "r"(receiver)
+              : "r0", "r1", "r2");
+  return r;
 }
 
 int get_Last_Pipe() {

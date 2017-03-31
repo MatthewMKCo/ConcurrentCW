@@ -57,14 +57,7 @@ void prioritySchedule(ctx_t* ctx) {
   lastLoaded = &pcb[ currentProcess ];
   return;
 }
-/*
-extern void     main_P3();
-extern uint32_t tos_P3;
-extern void     main_P4();
-extern uint32_t tos_P4;
-extern void     main_P5();
-extern uint32_t tos_P5;
-*/
+
 extern void     main_console();
 extern uint32_t tos_console;
 
@@ -96,7 +89,7 @@ void hilevel_handler_rst(ctx_t* ctx) {
    * restored (i.e., executed) when the function then returns.
    */
 
-  TIMER0->Timer1Load  = 0x00100000; // select period = 2^20 ticks ~= 1 sec
+  TIMER0->Timer1Load  = 0x00010000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl  = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl |= 0x00000040; // select periodic timer
   TIMER0->Timer1Ctrl |= 0x00000020; // enable          timer interrupt
@@ -121,7 +114,8 @@ void hilevel_handler_irq(ctx_t* ctx) {
 
   if( id == GIC_SOURCE_TIMER0 ) {
     prioritySchedule(ctx);
-    PL011_putc( UART0, '_', true );    TIMER0->Timer1IntClr = 0x01;
+    //PL011_putc( UART0, '', true );
+    TIMER0->Timer1IntClr = 0x01;
   }
 
   // Step 5: write the interrupt identifier to signal we're done.
@@ -162,10 +156,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
       else{
         if(pipes[fd - 5].senderFlag == 1 && pipes[fd - 5].receiverFlag == 1){
           void* x = (void*) (ctx->gpr[ 1 ]);
-          //pipes[fd - 5].write = x;
           memcpy(pipes[fd-5].write, (void*) ctx->gpr[ 1 ], n);
-          //memcpy(pipes[fd-5].write, ctx->gpr[1], n);
-          //memmove(pipes[fd-5].write, ctx->gpr[1], n);
           pipes[fd - 5].senderFlag = 2;
           pipes[fd - 5].size = n;
           ctx->gpr[ 0 ] = 1;
@@ -179,11 +170,14 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
       int n = (int)(ctx->gpr[2]);
       void* x = (void*)(ctx->gpr[1]);
       if(pipes[fd - 5].senderFlag == 2 && pipes[fd - 5].receiverFlag == 1){
+        if(pipes[fd-5].write == NULL){
+          ctx->gpr[ 0 ] = -1;
+          break;
+        }
         ctx->gpr[0] = 1;
         //x = pipes[fd - 5].write;
         memcpy(x, pipes[fd-5].write, pipes[fd - 5].size);
-        void* y = pipes[fd-5].write;
-        x = y;
+        pipes[fd-5].write = NULL;
         pipes[fd - 5].receiverFlag = 2;
       }
       else ctx->gpr[ 0 ] = -1;
@@ -281,16 +275,20 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
         for(int i = 0; i < numberOfPipes; i++){
           if(pipes[i].pidSender == sender && pipes[i].pidReceiver == receiver){
             pipes[i].senderFlag = 0;
+            ctx->gpr[0] = 1;
             break;
           }
+          else ctx->gpr[0] = -1;
         }
       }
       else if(fd == 4){
         for(int i = 0; i < numberOfPipes; i++){
           if(pipes[i].pidSender == sender && pipes[i].pidReceiver == receiver){
             pipes[i].receiverFlag = 0;
+            ctx->gpr[0] = 1;
             break;
           }
+          else ctx->gpr[0] = -1;
         }
       }
       break;
@@ -308,9 +306,6 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
         pipes[fd - 5].senderFlag = 2;
         pipes[fd - 5].size = n;
         pipes[fd - 5].write = x;
-        //memcpy(pipes[fd-5].write, x, n);
-        //memcpy(pipes[fd-5].write, ctx->gpr[1], n);
-        //memmove(pipes[fd-5].write, ctx->gpr[1], n);
 
         ctx->gpr[ 0 ] = 1;
       }

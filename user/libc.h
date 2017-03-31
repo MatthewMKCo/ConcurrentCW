@@ -79,13 +79,18 @@ extern int create_Pipe(int sender, int receiver);
 // open pipe on the a process' end
 extern int open_Pipe(int fd, int sender, int receiever);
 
+// get current process' PID
 extern int get_PID();
 
+// close pipe so that it's not used
 extern int close(int fd);
 
-extern void block_Pipe(int fd, int sender, int receiver);
+// block one pipe end
+extern int block_Pipe(int fd, int sender, int receiver);
 
+// get the last pipe linked to a process
 extern int get_Last_Pipe();
 
+// write to pipe
 extern int write_Pipe(int fd, void* x, size_t n);
 #endif

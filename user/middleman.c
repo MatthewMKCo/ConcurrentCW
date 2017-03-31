@@ -4,8 +4,8 @@ extern void main_Phil();
 
 void main_Middleman(){
   int originalPID = get_PID();
-  int numberOfProcesses = 3;
-  int childID[3];
+  int numberOfProcesses = 16;
+  int childID[16];
 
   for(int i = 0; i < numberOfProcesses; i++){
     int pid = fork(10);
@@ -38,10 +38,7 @@ void main_Middleman(){
       }
     }
   }
-/*
-  for(int i = 0; i < numberOfProcesses; i++){
-    //create_Pipe(originalPID, childID[i]);
-  }*/
+
   int send[16][2];
   for(int i = 0; i < numberOfProcesses; i++){
     //create_Pipe(originalPID, childID[i]);
@@ -80,35 +77,5 @@ void main_Middleman(){
     }*/
   }
 
-
-/*
-  create_Pipe(originalPID, childID[0]);
-  int fd = open_Pipe(WRONLY);
-  while(1){
-    int check = write(fd, 1, 1);
-    if(check == 1)break;
-    yield();
-  }
-  while(1){
-    int check = close(fd);
-    if(check == 1)break;
-    yield();
-  }
-
-  create_Pipe(originalPID, childID[numberOfProcesses - 1]);
-  fd = open_Pipe(WRONLY);
-  while(1){
-    int check = write(fd, 1, 1);
-
-    if(check == 1)break;
-    yield();
-  }
-  while(1){
-    int check = close(fd);
-    if(check == 1)break;
-    yield();
-  }
-*/
-  write(STDOUT_FILENO,"middle", 6);
   exit(EXIT_SUCCESS);
 }
